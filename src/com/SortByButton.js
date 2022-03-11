@@ -9,8 +9,18 @@ class SortByButton extends React.Component {
   // }
 
   render() {
+    let arrow = '';
+    if (this.props.direction === 'asc') {
+      arrow = '▲';
+    }
+    else if (this.props.direction === 'desc') {
+      arrow = '▼';
+    }
+
     return (
-      <button>{ this.props.column }</button>
+      <button className="sort">
+        { this.props.column + ' ' + arrow }
+      </button>
     )
   }
 

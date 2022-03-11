@@ -7,7 +7,9 @@ class Contacts extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      contactsList: []
+      contactsList: [],
+      sortColumn: '',
+      sortDirection: ''
     };
   }
 
@@ -25,6 +27,49 @@ class Contacts extends React.Component {
       );
   }
 
+  /*
+    if 'asc' -> return 'desc'
+    if anything else, including 'desc' and nothing -> return 'asc'
+  */
+  toggleDirection(direction) {
+    if (direction === 'asc') {
+      return 'desc'
+    }
+    return 'asc';
+  }
+
+  handleSortButtonClick(column) {
+    if (column !== this.state.sortColumn) {
+      this.setState({
+        sortColumn: column,
+        sortDirection: 'asc'
+      })
+    } else {
+      const newDirection = this.toggleDirection(this.state.sortDirection);
+      this.setState({
+        sortDirection: newDirection
+      })
+    }
+  }
+
+  // sort(column, direction) {
+
+  // }
+
+  columnHeader(column) {
+    const isSorted = column === this.state.sortColumn;
+    return (
+      <th scope="col">
+        <SortByButton
+          column={ column }
+          sort={ isSorted }
+          direction={ isSorted && this.state.sortDirection }
+          onClick={() => this.handleSortButtonClick(column)}
+        />
+      </th>
+    );
+  }
+
   render() {
     const rows = this.state.contactsList.map( contact => (
       <tr key={ contact.id + contact.phone }>
@@ -40,13 +85,11 @@ class Contacts extends React.Component {
       <table className="table">
         <thead>
           <tr>
-            <th scope="col">
-              <SortByButton column="id" />
-            </th>
-            <th scope="col">firstName</th>
-            <th scope="col">lastName</th>
-            <th scope="col">email</th>
-            <th scope="col">phone</th>
+            { this.columnHeader('id') }
+            { this.columnHeader('firstName') }
+            { this.columnHeader('lastName') }
+            { this.columnHeader('email') }
+            { this.columnHeader('phone') }
           </tr>
         </thead>
         <tbody>
