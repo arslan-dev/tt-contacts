@@ -1,6 +1,7 @@
 import React from 'react';
 
 import SortByButton from './SortByButton';
+import Paginator from './Paginator';
 
 class Contacts extends React.Component {
 
@@ -9,7 +10,10 @@ class Contacts extends React.Component {
     this.state = {
       contactsList: [],
       sortColumn: '',
-      sortDirection: ''
+      sortDirection: '',
+
+      pageSize: 30,
+      currentPage: 0,
     };
 
     // сортировщик для английского языка
@@ -17,7 +21,7 @@ class Contacts extends React.Component {
   }
 
   componentDidMount() {
-    fetch("http://www.filltext.com/?rows=32&id=%7Bnumber%7C1000%7D&firstName=%7BfirstName%7D&lastName=%7BlastName%7D&email=%7Bemail%7D&phone=%7Bphone%7C(xxx)xxx-xx-xx%7D&address=%7BaddressObject%7D&description=%7Blorem%7C32%7D")
+    fetch("http://www.filltext.com/?rows=200&id=%7Bnumber%7C1000%7D&firstName=%7BfirstName%7D&lastName=%7BlastName%7D&email=%7Bemail%7D&phone=%7Bphone%7C(xxx)xxx-xx-xx%7D&address=%7BaddressObject%7D&description=%7Blorem%7C32%7D")
       .then(res => res.json())
       .then(
         (contactsList) => {
@@ -105,7 +109,13 @@ class Contacts extends React.Component {
   }
 
   render() {
-    const rows = this.state.contactsList.map( contact => (
+    // извлекаем данные для текущей страницы
+    const a = this.state.currentPage * this.state.pageSize;
+    const b = (this.state.currentPage + 1) * this.state.pageSize;
+    const page = this.state.contactsList.slice(a, b);
+
+    // отрисоывываем страницу данных
+    const rows = page.map( contact => (
       <tr key={ contact.id + contact.phone }>
         <th scope="row">{ contact.id }</th>
         <td>{ contact.firstName }</td>
@@ -115,21 +125,31 @@ class Contacts extends React.Component {
       </tr>
     ));
 
+    const pageCount = this.state.contactsList.length / this.state.pageSize;
+    console.log(pageCount);
+
     return (
-      <table className="table">
-        <thead>
-          <tr>
-            { this.columnHeader('id') }
-            { this.columnHeader('firstName') }
-            { this.columnHeader('lastName') }
-            { this.columnHeader('email') }
-            { this.columnHeader('phone') }
-          </tr>
-        </thead>
-        <tbody>
-          {rows}
-        </tbody>
-      </table>
+      <>
+        <Paginator
+          pageCount={ pageCount }
+          currentPage={ this.state.currentPage}
+        />
+
+        <table className="table">
+          <thead>
+            <tr>
+              { this.columnHeader('id') }
+              { this.columnHeader('firstName') }
+              { this.columnHeader('lastName') }
+              { this.columnHeader('email') }
+              { this.columnHeader('phone') }
+            </tr>
+          </thead>
+          <tbody>
+            {rows}
+          </tbody>
+        </table>
+      </>
     )
   }
 
