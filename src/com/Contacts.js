@@ -11,6 +11,9 @@ class Contacts extends React.Component {
       sortColumn: '',
       sortDirection: ''
     };
+
+    // сортировщик для английского языка
+    this.enCollator = new Intl.Collator('en');
   }
 
   componentDidMount() {
@@ -52,9 +55,40 @@ class Contacts extends React.Component {
     }
   }
 
-  // sort(column, direction) {
+  // Сортируем только, если изменены параметры сортировки
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      this.state.sortColumn !== prevState.sortColumn ||
+      this.state.sortDirection !== prevState.sortDirection
+    ) {
+      this.sort(this.state.sortColumn, this.state.sortDirection);
+    }
+  }
 
-  // }
+  sort(column, direction) {
+    const sortedContacts = this.state.contactsList.sort((a, b) => {
+      let compareRes;
+      const valA = a[column];
+      const valB = b[column];
+
+      // разные для принципы сравнения для разных колонок
+      if (column === 'id') {
+        compareRes = valA - valB;
+      } else {
+        compareRes = this.enCollator.compare(valA, valB);
+      }
+
+      // инвертируем, если в сортируем в обратном порядке
+      if (direction === 'desc') {
+        compareRes *= -1;
+      }
+      return compareRes;
+    });
+
+    this.setState({
+      contactsList: sortedContacts.slice()
+    });
+  }
 
   columnHeader(column) {
     const isSorted = column === this.state.sortColumn;

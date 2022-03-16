@@ -11,14 +11,17 @@ class SortByButton extends React.Component {
   render() {
     let arrow = '';
     if (this.props.direction === 'asc') {
-      arrow = '▲';
+      arrow = '▼';
     }
     else if (this.props.direction === 'desc') {
-      arrow = '▼';
+      arrow = '▲';
     }
 
     return (
-      <button className="sort">
+      <button
+        className="sort"
+        onClick={this.props.onClick}
+      >
         { this.props.column + ' ' + arrow }
       </button>
     )
