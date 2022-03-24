@@ -16,7 +16,6 @@ type TContact = {
 interface State {
   contactsList: Array<TContact>,
 
-  isSorted: boolean,
   sortColumn: TColumn,
   sortDirection: ESortDirection,
 
@@ -34,9 +33,8 @@ class Contacts extends React.Component<Props, State> {
     this.state = {
       contactsList: [],
 
-      isSorted: false,
       sortColumn: 'id',
-      sortDirection: ESortDirection.asc,
+      sortDirection: ESortDirection.nosort,
 
       pageSize: 30,
       currentPage: 0,
@@ -44,6 +42,10 @@ class Contacts extends React.Component<Props, State> {
 
     // сортировщик для английского языка
     this.enCollator = new Intl.Collator('en');
+  }
+
+  get isSorted() {
+    return this.state.sortDirection !== ESortDirection.nosort;
   }
 
   componentDidMount() {
@@ -74,7 +76,6 @@ class Contacts extends React.Component<Props, State> {
   handleSortButtonClick(column: TColumn): void {
     if (column !== this.state.sortColumn) {
       this.setState({
-        isSorted: true,
         sortColumn: column,
         sortDirection: ESortDirection.asc
       })
@@ -88,7 +89,7 @@ class Contacts extends React.Component<Props, State> {
 
   // Сортируем только, если изменены параметры сортировки
   componentDidUpdate(prevProps: State, prevState: State) {
-    if ( this.state.isSorted ) {
+    if ( this.isSorted ) {
       if (
         this.state.sortColumn !== prevState.sortColumn ||
         this.state.sortDirection !== prevState.sortDirection
@@ -123,13 +124,12 @@ class Contacts extends React.Component<Props, State> {
   }
 
   columnHeader(column: TColumn) {
-    const isSorted = this.state.isSorted && column === this.state.sortColumn;
+    const isSorted = this.isSorted && column === this.state.sortColumn;
     return (
       <th scope="col">
         <SortByButton
           column={ column }
-          sort={ isSorted }
-          direction={ isSorted ? this.state.sortDirection : ESortDirection.asc }
+          direction={ isSorted ? this.state.sortDirection : ESortDirection.nosort }
           onClick={() => this.handleSortButtonClick(column)}
         />
       </th>
@@ -153,14 +153,18 @@ class Contacts extends React.Component<Props, State> {
       </tr>
     ));
 
-    const pageCount = this.state.contactsList.length / this.state.pageSize;
-    console.log(pageCount);
+    const contactsLength = this.state.contactsList.length;
+    let pageCount = Math.floor( contactsLength / this.state.pageSize );
+    if (pageCount * this.state.pageSize < contactsLength) {
+      pageCount += 1;
+    }
 
     return (
       <>
         <Paginator
           pageCount={ pageCount }
           currentPage={ this.state.currentPage}
+          gotoPage={ page => this.setState({ currentPage: page }) }
         />
 
         <table className="table">

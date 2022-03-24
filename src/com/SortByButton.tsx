@@ -1,11 +1,10 @@
 import React from 'react';
 
-export enum ESortDirection { asc, desc }
+export enum ESortDirection { nosort, asc, desc }
 export type TColumn = 'id' | 'firstName' | 'lastName' | 'email' | 'phone' ;
 
 interface Props {
   column: TColumn;
-  sort: boolean;
   direction: ESortDirection;
   onClick: () => void;
 }
