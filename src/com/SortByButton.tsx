@@ -1,6 +1,15 @@
 import React from 'react';
 
-class SortByButton extends React.Component {
+type Props = {
+  column: string
+  sort: boolean,
+  direction: string,
+  onClick: () => void
+}
+
+type State = {}
+
+class SortByButton extends React.Component<Props, State> {
 
   // constructor(props) {
   //   super(props);

@@ -1,6 +1,13 @@
 import React from 'react';
 
-class Paginator extends React.Component {
+type Props = {
+  pageCount: number,
+  currentPage: number
+}
+
+type State = {}
+
+class Paginator extends React.Component<Props, State> {
 
   render() {
     return (

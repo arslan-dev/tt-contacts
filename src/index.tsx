@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import Contacts from './com/Contacts.js'
+import Contacts from './com/Contacts';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
