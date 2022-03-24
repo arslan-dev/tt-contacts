@@ -1,13 +1,15 @@
 import React from 'react';
 
-type Props = {
-  column: string
-  sort: boolean,
-  direction: string,
-  onClick: () => void
+export enum ESortDirection { asc, desc }
+
+interface Props {
+  column: string;
+  sort: boolean;
+  direction: ESortDirection;
+  onClick: () => void;
 }
 
-type State = {}
+interface State {}
 
 class SortByButton extends React.Component<Props, State> {
 
@@ -19,10 +21,10 @@ class SortByButton extends React.Component<Props, State> {
 
   render() {
     let arrow = '';
-    if (this.props.direction === 'asc') {
+    if (this.props.direction === ESortDirection.asc) {
       arrow = '▼';
     }
-    else if (this.props.direction === 'desc') {
+    else if (this.props.direction === ESortDirection.desc) {
       arrow = '▲';
     }
 

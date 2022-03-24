@@ -1,15 +1,14 @@
 import React from 'react';
 
-import SortByButton from './SortByButton';
+import SortByButton, { ESortDirection } from './SortByButton';
 import Paginator from './Paginator';
 
-type Props = {
-}
+interface Props {}
 
-type State = {
+interface State {
   contactsList: Array<{}>,
   sortColumn: string,
-  sortDirection: string,
+  sortDirection: ESortDirection,
 
   pageSize: number,
   currentPage: number
@@ -27,7 +26,7 @@ class Contacts extends React.Component<Props, State> {
     this.state = {
       contactsList: [],
       sortColumn: '',
-      sortDirection: '',
+      sortDirection: ESortDirection.asc,
 
       pageSize: 30,
       currentPage: 0,
@@ -55,18 +54,18 @@ class Contacts extends React.Component<Props, State> {
     if 'asc' -> return 'desc'
     if anything else, including 'desc' and nothing -> return 'asc'
   */
-  toggleDirection(direction: string): string {
-    if (direction === 'asc') {
-      return 'desc'
+  toggleDirection(direction: ESortDirection): ESortDirection {
+    if (direction === ESortDirection.asc) {
+      return ESortDirection.desc
     }
-    return 'asc';
+    return ESortDirection.asc;
   }
 
   handleSortButtonClick(column: string): void {
     if (column !== this.state.sortColumn) {
       this.setState({
         sortColumn: column,
-        sortDirection: 'asc'
+        sortDirection: ESortDirection.asc
       })
     } else {
       const newDirection = this.toggleDirection(this.state.sortDirection);
@@ -86,7 +85,7 @@ class Contacts extends React.Component<Props, State> {
     }
   }
 
-  sort(column: string, direction: string) {
+  sort(column: string, direction: ESortDirection) {
     const sortedContacts = this.state.contactsList.sort((a:TContact, b:TContact) => {
       let compareRes;
       const valA = a[column];
@@ -103,7 +102,7 @@ class Contacts extends React.Component<Props, State> {
       }
 
       // инвертируем, если в сортируем в обратном порядке
-      if (direction === 'desc') {
+      if (direction === ESortDirection.desc) {
         compareRes *= -1;
       }
       return compareRes;
@@ -121,7 +120,7 @@ class Contacts extends React.Component<Props, State> {
         <SortByButton
           column={ column }
           sort={ isSorted }
-          direction={ isSorted ? this.state.sortDirection : 'asc' }
+          direction={ isSorted ? this.state.sortDirection : ESortDirection.asc }
           onClick={() => this.handleSortButtonClick(column)}
         />
       </th>
