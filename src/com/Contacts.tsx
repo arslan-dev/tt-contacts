@@ -1,22 +1,30 @@
 import React from 'react';
 
-import SortByButton, { ESortDirection } from './SortByButton';
+import SortByButton, { ESortDirection, TColumn } from './SortByButton';
 import Paginator from './Paginator';
 
 interface Props {}
 
+type TContact = {
+  id: number,
+  firstName: string,  
+  lastName: string,
+  email: string,
+  phone: string
+}
+
 interface State {
-  contactsList: Array<{}>,
-  sortColumn: string,
+  contactsList: Array<TContact>,
+
+  isSorted: boolean,
+  sortColumn: TColumn,
   sortDirection: ESortDirection,
 
   pageSize: number,
   currentPage: number
 }
 
-type TContact = {
-  [key: string]: string | number,
-}
+
 
 class Contacts extends React.Component<Props, State> {
   enCollator: Intl.Collator;
@@ -25,7 +33,9 @@ class Contacts extends React.Component<Props, State> {
     super(props);
     this.state = {
       contactsList: [],
-      sortColumn: '',
+
+      isSorted: false,
+      sortColumn: 'id',
       sortDirection: ESortDirection.asc,
 
       pageSize: 30,
@@ -61,9 +71,10 @@ class Contacts extends React.Component<Props, State> {
     return ESortDirection.asc;
   }
 
-  handleSortButtonClick(column: string): void {
+  handleSortButtonClick(column: TColumn): void {
     if (column !== this.state.sortColumn) {
       this.setState({
+        isSorted: true,
         sortColumn: column,
         sortDirection: ESortDirection.asc
       })
@@ -77,28 +88,26 @@ class Contacts extends React.Component<Props, State> {
 
   // Сортируем только, если изменены параметры сортировки
   componentDidUpdate(prevProps: State, prevState: State) {
-    if (
-      this.state.sortColumn !== prevState.sortColumn ||
-      this.state.sortDirection !== prevState.sortDirection
-    ) {
-      this.sort(this.state.sortColumn, this.state.sortDirection);
+    if ( this.state.isSorted ) {
+      if (
+        this.state.sortColumn !== prevState.sortColumn ||
+        this.state.sortDirection !== prevState.sortDirection
+      )
+      {
+        this.sort(this.state.sortColumn, this.state.sortDirection);
+      }
     }
   }
 
-  sort(column: string, direction: ESortDirection) {
+  sort(column: TColumn, direction: ESortDirection) {
     const sortedContacts = this.state.contactsList.sort((a:TContact, b:TContact) => {
       let compareRes;
-      const valA = a[column];
-      const valB = b[column];
 
-      // разные для принципы сравнения для разных колонок и соответствующих им типов
-      if (column === 'id' && typeof valA === 'number' && typeof valB === 'number') {
-        compareRes = valA - valB;
-      } else if (typeof valA === 'string' && typeof valB === 'string') {
-        compareRes = this.enCollator.compare(valA, valB);
+      // разные для принципы сравнения для разных колонок
+      if (column === 'id') {
+        compareRes = a.id - b.id;
       } else {
-        // если по какой-то причине появились типы, которые невозможно сравнить, значит сравнени невозможно
-        compareRes = 0
+        compareRes = this.enCollator.compare(a[column], b[column]);
       }
 
       // инвертируем, если в сортируем в обратном порядке
@@ -113,8 +122,8 @@ class Contacts extends React.Component<Props, State> {
     });
   }
 
-  columnHeader(column: string) {
-    const isSorted = column === this.state.sortColumn;
+  columnHeader(column: TColumn) {
+    const isSorted = this.state.isSorted && column === this.state.sortColumn;
     return (
       <th scope="col">
         <SortByButton
