@@ -159,12 +159,24 @@ class Contacts extends React.Component<Props, State> {
       pageCount += 1;
     }
 
+    const gotoPage = (page: number): void => {
+      // запрашиваемая страница должна быть в рамках
+      const lastPage = pageCount-1;
+       if (page < 0) {
+         page = 0;
+       } else if (page > lastPage) {
+        page = lastPage;
+       }
+
+       this.setState({ currentPage: page })
+    }
+
     return (
       <>
         <Paginator
           pageCount={ pageCount }
           currentPage={ this.state.currentPage}
-          gotoPage={ page => this.setState({ currentPage: page }) }
+          gotoPage={ gotoPage }
         />
 
         <table className="table">

@@ -1,4 +1,5 @@
 import React from 'react';
+import classnames from 'classnames';
 
 interface Props {
   pageCount: number;
@@ -17,7 +18,13 @@ class Paginator extends React.Component<Props, State> {
     for (let page=0; page<this.props.pageCount; page++) {
       buttons.push((
         <li className="page-item" key={ page }>
-          <button className="page-button" onClick={ () => this.props.gotoPage(page) }>
+          <button
+            className={ classnames ({
+              'page-button': true,
+              'active': this.props.currentPage === page
+            }) }
+            onClick={ () => this.props.gotoPage(page) }
+          >
             { page+1 }
           </button>
         </li>
@@ -27,9 +34,33 @@ class Paginator extends React.Component<Props, State> {
     return (
       <nav aria-label="Page navigation example">
         <ul className="pagination">
-          <li className="page-item"><button className="page-button">Previous</button></li>
+
+          <li className="page-item">
+            <button
+              className={ classnames ({
+                'page-button': true,
+                'active': this.props.currentPage === 0
+              }) }
+              onClick={ () => this.props.gotoPage(this.props.currentPage-1) }
+            >
+              &lt; Previous
+            </button>
+          </li>
+
           { buttons }
-          <li className="page-item"><button className="page-button">Next</button></li>
+
+          <li className="page-item">
+            <button
+              className={ classnames ({
+                'page-button': true,
+                'active': this.props.currentPage === this.props.pageCount-1
+              }) }
+              onClick={ () => this.props.gotoPage(this.props.currentPage+1)}
+            >
+              Next &gt;
+            </button>
+          </li>
+
         </ul>
       </nav>
     );

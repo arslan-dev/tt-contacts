@@ -26,6 +26,12 @@ body {
   color: rgb(105, 166, 213);
 }
 
+.page-button.active {
+  background-color: #007bff;
+  color: white;
+  pointer-events: none;
+}
+
 .page-button:hover {
   background-color: #eee;
 }
