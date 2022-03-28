@@ -14,17 +14,19 @@ type TContact = {
   phone: string
 }
 
+type TContactsList = Array<TContact>
+
 interface State {
-  contactsList: Array<TContact>,
+  contactsList: TContactsList,
 
   sortColumn: TColumn,
   sortDirection: ESortDirection,
 
   pageSize: number,
-  currentPage: number
+  currentPage: number,
+
+  searchPhrase: string
 }
-
-
 
 class Contacts extends React.Component<Props, State> {
   enCollator: Intl.Collator;
@@ -39,7 +41,12 @@ class Contacts extends React.Component<Props, State> {
 
       pageSize: 30,
       currentPage: 0,
+
+      searchPhrase: ''
     };
+
+    this.setSearchPhrase = this.setSearchPhrase.bind(this)
+    this.search = this.search.bind(this)
 
     // сортировщик для английского языка
     this.enCollator = new Intl.Collator('en');
@@ -49,18 +56,72 @@ class Contacts extends React.Component<Props, State> {
     return this.state.sortDirection !== ESortDirection.nosort;
   }
 
-  componentDidMount() {
-    fetch("http://www.filltext.com/?rows=200&id=%7Bnumber%7C1000%7D&firstName=%7BfirstName%7D&lastName=%7BlastName%7D&email=%7Bemail%7D&phone=%7Bphone%7C(xxx)xxx-xx-xx%7D&address=%7BaddressObject%7D&description=%7Blorem%7C32%7D")
-      .then(res => res.json())
-      .then(
-        (contactsList) => {
-          if (contactsList.length) {
-            this.setState({
-              contactsList: contactsList
-            });
-          }
-        }
-      );
+  async componentDidMount() {
+    const res = await fetch("http://www.filltext.com/?rows=200&id=%7Bnumber%7C1000%7D&firstName=%7BfirstName%7D&lastName=%7BlastName%7D&email=%7Bemail%7D&phone=%7Bphone%7C(xxx)xxx-xx-xx%7D&address=%7BaddressObject%7D&description=%7Blorem%7C32%7D");
+    const contactsList = await res.json();
+
+    if (contactsList.length) {
+      this.setState({
+        contactsList: [...contactsList]
+      });
+    }
+  }
+
+  search(contactsList: TContactsList, phrase: string): TContactsList {
+    phrase = phrase.trim();
+    const filteredContactsList = contactsList.filter((contact) => {
+      const re = new RegExp(phrase, 'i')
+        return contact.id.toString().match(re) ||
+               contact.firstName.match(re) ||
+               contact.lastName.match(re) ||
+               contact.email.match(re) ||
+               contact.phone.match(re);
+    });
+
+    return filteredContactsList
+  }
+
+  sort(contactsList: TContactsList, column: TColumn, direction: ESortDirection): TContactsList {
+    const sortedContacts = contactsList.sort((a:TContact, b:TContact) => {
+      let compareRes;
+
+      // разные для принципы сравнения для разных колонок
+      if (column === 'id') {
+        compareRes = a.id - b.id;
+      } else {
+        compareRes = this.enCollator.compare(a[column], b[column]);
+      }
+
+      // инвертируем, если в сортируем в обратном порядке
+      if (direction === ESortDirection.desc) {
+        compareRes *= -1;
+      }
+      return compareRes;
+    });
+
+    return sortedContacts
+  }
+
+  extractPage(contactsList: TContactsList, currentPage: number, pageSize: number): TContactsList {
+    const a = this.state.currentPage * this.state.pageSize;
+    const b = (this.state.currentPage + 1) * this.state.pageSize;
+    return contactsList.slice(a, b);
+  }
+
+  get processedList(): TContactsList {
+    let list = this.state.contactsList;
+    list = this.search(list, this.state.searchPhrase);
+    list = this.sort(list, this.state.sortColumn, this.state.sortDirection);
+    return list;
+  }
+
+  setSearchPhrase(phrase: string): void {
+    if (phrase !== this.state.searchPhrase) {
+      this.setState({
+        searchPhrase: phrase,
+        currentPage: 0
+      });
+    }
   }
 
   /*
@@ -88,42 +149,6 @@ class Contacts extends React.Component<Props, State> {
     }
   }
 
-  // Сортируем только, если изменены параметры сортировки
-  componentDidUpdate(prevProps: State, prevState: State) {
-    if ( this.isSorted ) {
-      if (
-        this.state.sortColumn !== prevState.sortColumn ||
-        this.state.sortDirection !== prevState.sortDirection
-      )
-      {
-        this.sort(this.state.sortColumn, this.state.sortDirection);
-      }
-    }
-  }
-
-  sort(column: TColumn, direction: ESortDirection) {
-    const sortedContacts = this.state.contactsList.sort((a:TContact, b:TContact) => {
-      let compareRes;
-
-      // разные для принципы сравнения для разных колонок
-      if (column === 'id') {
-        compareRes = a.id - b.id;
-      } else {
-        compareRes = this.enCollator.compare(a[column], b[column]);
-      }
-
-      // инвертируем, если в сортируем в обратном порядке
-      if (direction === ESortDirection.desc) {
-        compareRes *= -1;
-      }
-      return compareRes;
-    });
-
-    this.setState({
-      contactsList: sortedContacts.slice()
-    });
-  }
-
   columnHeader(column: TColumn) {
     const isSorted = this.isSorted && column === this.state.sortColumn;
     return (
@@ -137,15 +162,10 @@ class Contacts extends React.Component<Props, State> {
     );
   }
 
-  search(phrase: string): void {
-    console.log(phrase);
-  }
-
   render() {
     // извлекаем данные для текущей страницы
-    const a = this.state.currentPage * this.state.pageSize;
-    const b = (this.state.currentPage + 1) * this.state.pageSize;
-    const page = this.state.contactsList.slice(a, b);
+    const processedList = this.processedList;
+    const page = this.extractPage(processedList, this.state.currentPage, this.state.pageSize);
 
     // отрисоывываем страницу данных
     const rows = page.map( (contact: TContact) => (
@@ -158,9 +178,9 @@ class Contacts extends React.Component<Props, State> {
       </tr>
     ));
 
-    const contactsLength = this.state.contactsList.length;
-    let pageCount = Math.floor( contactsLength / this.state.pageSize );
-    if (pageCount * this.state.pageSize < contactsLength) {
+    const listLength = processedList.length;
+    let pageCount = Math.floor( listLength / this.state.pageSize );
+    if (pageCount * this.state.pageSize < listLength) {
       pageCount += 1;
     }
 
@@ -180,7 +200,7 @@ class Contacts extends React.Component<Props, State> {
       <>
         <h3>Contacts 📝</h3>
         <SearchBar
-          onSearch={ this.search }
+          onSearch={ this.setSearchPhrase }
         />
 
         <Paginator
