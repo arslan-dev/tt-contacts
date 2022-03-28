@@ -2,6 +2,7 @@ import React from 'react';
 
 import SortByButton, { ESortDirection, TColumn } from './SortByButton';
 import Paginator from './Paginator';
+import SearchBar from './SearchBar';
 
 interface Props {}
 
@@ -136,6 +137,10 @@ class Contacts extends React.Component<Props, State> {
     );
   }
 
+  search(phrase: string): void {
+    console.log(phrase);
+  }
+
   render() {
     // извлекаем данные для текущей страницы
     const a = this.state.currentPage * this.state.pageSize;
@@ -173,6 +178,11 @@ class Contacts extends React.Component<Props, State> {
 
     return (
       <>
+        <h3>Contacts 📝</h3>
+        <SearchBar
+          onSearch={ this.search }
+        />
+
         <Paginator
           pageCount={ pageCount }
           currentPage={ this.state.currentPage}
